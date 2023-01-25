@@ -27,12 +27,8 @@ jobs:
     - name: 编译
       run: |
         ./gradlew build
-
-    - name: find
-      run: |
-        find . -name "*.apk"
-    
+ 
     - name: 上传
       uses: actions/upload-artifact@v3
       with: 
-        path: build/outputs/apk/release/*.apk
+        path: ./app/build/outputs/apk/release/app-release-unsigned.apk
