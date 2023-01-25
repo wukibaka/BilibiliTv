@@ -27,6 +27,10 @@ jobs:
     - name: 编译
       run: |
         ./gradlew build
+
+    - name: find
+      run: |
+        find . -name "*.apk"
     
     - name: 上传
       uses: actions/upload-artifact@v3
