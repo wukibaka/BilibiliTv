@@ -182,6 +182,17 @@ class VideoPlayBackViewModel @Inject constructor(
         }
     }
 
+
+    fun playNextPIfExists() {
+        if (_videoPages.size < 2) {
+            return
+        }
+        _videoPages.indexOfFirst { it.cid == _cidState.value }
+            .takeIf { it != -1 && it < _videoPages.size - 1 }
+            ?.let { changePage(_videoPages[it + 1]) }
+
+    }
+
     fun toggleDanmuState() {
         viewModelScope.launch(Dispatchers.Default) {
             _danmuEnable.emit(!_danmuEnable.value)
@@ -211,20 +222,19 @@ class VideoPlayBackViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             bilibiliApi.getVideoDetail(bvid, avid).data?.view?.let { detail ->
                 _videoPages = detail.pages
-                if (_videoPages.size > 1) {
-                    bilibiliApi.getLastPlayInfo(avid, bvid, detail.cid).data?.let { lastPlay ->
-                        if (lastPlay.lastPlayCid > 0) {
-                            _cidState.emit(lastPlay.lastPlayCid)
-                            lastPlayTime = lastPlay.lastPlayTime
-                            _titleSate.emit(_videoPages.find { it.cid == lastPlay.lastPlayCid }!!.part)
-                        } else {
-                            _cidState.emit(_videoPages[0].cid)
-                            _titleSate.emit(_videoPages[0].part)
+                bilibiliApi.getLastPlayInfo(avid, bvid, detail.cid).data?.let { lastPlay ->
+                    if (lastPlay.lastPlayCid > 0) {
+                        _cidState.emit(lastPlay.lastPlayCid)
+                        lastPlayTime = lastPlay.lastPlayTime
+                        _videoPages.find { it.cid == lastPlay.lastPlayCid }?.let {
+                            _titleSate.emit(it.part)
+                            _duration = it.duration
                         }
+                    } else {
+                        _cidState.emit(_videoPages[0].cid)
+                        _titleSate.emit(_videoPages[0].part)
+                        _duration = _videoPages[0].duration
                     }
-                } else {
-                    _cidState.emit(_videoPages[0].cid)
-                    _titleSate.emit(_videoPages[0].part)
                 }
             }
         }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.drawable.toDrawable
 import androidx.leanback.R
 import androidx.leanback.app.VideoSupportFragment
 import androidx.leanback.app.VideoSupportFragmentGlueHost
@@ -16,8 +17,8 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.leanback.LeanbackPlayerAdapter
-import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.jing.bilibilitv.BuildConfig
 import com.jing.bilibilitv.ext.showLongToast
 import com.jing.bilibilitv.http.data.LiveStreamUrlDurl
@@ -34,15 +35,12 @@ import master.flame.danmaku.danmaku.model.android.DanmakuContext
 import master.flame.danmaku.danmaku.model.android.Danmakus
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser
 import master.flame.danmaku.ui.widget.DanmakuView
-import okhttp3.OkHttpClient
 
 class LiveRoomPlaybackFragment(
-    private val viewModel: LiveRoomPlaybackViewModel,
-    private val okHttpClient: OkHttpClient
+    private val viewModel: LiveRoomPlaybackViewModel
 ) :
     VideoSupportFragment() {
     private var exoPlayer: ExoPlayer? = null
-    private val exoPlayerDataSourceFactory = OkHttpDataSource.Factory { okHttpClient.newCall(it) }
     private var danmakuView: DanmakuView? = null
     private lateinit var playbackRoot: ViewGroup
     private lateinit var danmakuContext: DanmakuContext
@@ -51,6 +49,12 @@ class LiveRoomPlaybackFragment(
     }
 
     private lateinit var glue: ProgressTransportControlGlue<LeanbackPlayerAdapter>
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        view.background = Color.BLACK.toDrawable()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -159,9 +163,15 @@ class LiveRoomPlaybackFragment(
 
     fun initExoplayer() {
         val mediaSourceFactory = DefaultMediaSourceFactory(requireContext()).apply {
-            setDataSourceFactory(exoPlayerDataSourceFactory).apply {
-                setLiveTargetOffsetMs(5000)
-            }
+            setDataSourceFactory(
+                DefaultHttpDataSource.Factory().setDefaultRequestProperties(
+                    mapOf(
+                        "user-agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+                        "referer" to "https://www.bilibili.com"
+                    )
+                )
+            )
+            setLiveTargetOffsetMs(5000L)
         }
         val player = ExoPlayer.Builder(requireContext())
             .setMediaSourceFactory(mediaSourceFactory)

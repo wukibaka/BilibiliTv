@@ -1,6 +1,7 @@
 package com.jing.bilibilitv.http.api
 
 import com.jing.bilibilitv.GlobalState
+import com.jing.bilibilitv.http.api.wbi.WBI_HEADER
 import com.jing.bilibilitv.http.data.*
 import okhttp3.ResponseBody
 import retrofit2.http.*
@@ -195,24 +196,6 @@ interface BilibiliApi {
 
 
     /**
-     * 查询用户发布的视频
-     * @param mid 用户id
-     * @param order 排序方式,最新发布：pubdate,最多播放：click,最多收藏：stow
-     * @param tid 分区id
-     * @param keyword 关键词
-     */
-    @GET("/x/space/arc/search")
-    suspend fun getAuthorVideo(
-        @Query("mid") mid: Long,
-        @Query("pn") pageNumber: Int,
-        @Query("ps") pageSize: Int,
-        @Query("order") order: String = "pubdate",
-        @Query("tid") tid: Long? = null,
-        @Query("keyworkd") keyword: String? = null
-    ): CommonDataResponse<AuthorVideoResponse>
-
-
-    /**
      * 查询番剧详情
      *
      */
@@ -274,7 +257,8 @@ interface BilibiliApi {
         @Field("csrf") csrf: String = GlobalState.csrfToken
     ): CommonDataResponse<Unit>
 
-    @GET("/x/space/arc/search")
+    @GET("/x/space/wbi/arc/search")
+    @Headers("$WBI_HEADER:true")
     suspend fun queryVideoOfUser(
         @Query("mid") mid: Long,
         @Query("pn") pageNumber: Int,
@@ -286,7 +270,8 @@ interface BilibiliApi {
     /**
      * 查询用户详情
      */
-    @GET("/x/space/acc/info")
+    @GET("/x/space/wbi/acc/info")
+    @Headers("$WBI_HEADER:true")
     suspend fun getUserDetail(
         @Query("mid") mid: Long
     ): CommonDataResponse<UserDetailResponse>
